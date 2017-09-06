@@ -3,7 +3,7 @@ import cv2
 
 align = None
 def x_cord_contour(contour):
-    # This function take a contour from findContours
+    # This function takes a contour from findContours
     # it then outputs the x centroid coordinates
 
     if cv2.contourArea(contour) > 10:
@@ -68,8 +68,8 @@ def getAlignedContours(contours):
     else:
         align = 'y'
         sorted_cnt = sorted(contours, key = y_cord_contour, reverse = False)
-    print align
-    return sorted_cnt
+
+    return align, sorted_cnt
 
 def makePaddedSquare(not_square):
     # This function takes an image and makes the dimenions square
@@ -170,13 +170,14 @@ def getImage(myfile):
     # Find Contours
     r_img, contours, _ = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    sorted_contours = getAlignedContours(contours)
+    align, sorted_contours = getAlignedContours(contours)
 
     cv2.imshow("image", r_img)
     cv2.waitKey(0)
 
 
     detected_images = []
+    coords = []
     count = 0
     for c in sorted_contours:
         (x,y,w,h) = cv2.boundingRect(c)
@@ -204,7 +205,8 @@ def getImage(myfile):
             cv2.waitKey(0)
 
             detected_images.append(constant)
+            coords.append((x, y, w, h))
             count = count + 1
     cv2.destroyAllWindows()
 
-    return detected_images
+    return detected_images, coords, align

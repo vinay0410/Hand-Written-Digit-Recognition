@@ -8,12 +8,23 @@ import extract
 f = open("../../Downloads/mnist.pkl")
 
 _, _, test = cPickle.load(f)
+img = cv2.imread('sample_images/numbers.jpg')
 
-imgs = extract.getImage('sample_images/numbers1.jpg')
+imgs, coords, align = extract.getImage('sample_images/numbers.jpg')
 
 def accuracy(predictions, labels):
   arr = np.argmax(predictions, axis=1)
   return 100*np.mean(arr == labels)
+
+def print_on_image(img, number, (x,y,w,h)):
+    if align == 'x':
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(img, str(number), (x , y + 155), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 2)
+    elif align == 'y':
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(img, str(number), (x + 155, y), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 255), 2)
+    cv2.imshow("final detections", img)
+    cv2.waitKey(0)
 
 digit = tf.placeholder(shape=[1, 784], dtype=tf.float32)
 
@@ -36,7 +47,7 @@ digit_prediction = model(digit)
 saver = tf.train.Saver()
 
 init = tf.global_variables_initializer()
-
+arr = []
 with tf.Session() as sess:
     sess.run(init)
     saver.restore(sess, "model/neural_net.ckpt")
@@ -45,16 +56,18 @@ with tf.Session() as sess:
     print layer1_b.eval().shape
     print layer2.eval().shape
     print layer2_b.eval().shape
-    for i in imgs:
+    cv2.imshow("final detections", img)
+    cv2.waitKey(0)
+    for i, coord in zip(imgs, coords):
         i = i/255.0
         cv2.imshow('im', i)
-        
-        i = np.reshape(i.ravel(), [1, 784])
-        print i.shape
-        p = sess.run(digit_prediction, feed_dict= {digit : i})
-        print np.argmax(p)
-        cv2.waitKey(0)
 
+        i = np.reshape(i.ravel(), [1, 784])
+        #print i.shape
+        p = sess.run(digit_prediction, feed_dict= {digit : i})
+        #print np.argmax(p)
+
+        print_on_image(img, np.argmax(p),coord)
 
     p = sess.run(test_prediction)
     print(accuracy(p, test[1]))
