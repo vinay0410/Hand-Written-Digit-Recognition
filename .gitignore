@@ -1,2 +1,5 @@
 .DS_Store
 *.pyc
+alternate_data
+train_net.py
+
