@@ -9,6 +9,9 @@ For user's convenience, model has already been trained and saved in model/ and u
 To recognize simply run,
 
 ```python test.py -i <path to image>```
+Press any key, to continue further
+
 
 For example,
+
 ```python test.py -i sample_images/numbers.jpg```
