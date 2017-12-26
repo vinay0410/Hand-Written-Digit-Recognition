@@ -1,7 +1,18 @@
 import numpy as np
 import cv2
+import collections
 
 align = None
+
+
+def show(imgDict, isVerbose):
+    print imgDict
+    if isVerbose:
+        for key in imgDict:
+            cv2.imshow(key, imgDict[key])
+        cv2.waitKey(0)
+
+
 def x_cord_contour(contour):
     # This function takes a contour from findContours
     # it then outputs the x centroid coordinates
@@ -89,11 +100,11 @@ def makePaddedSquare(not_square):
         width = width * 2
         #print("New Height = ", height, "New Width = ", width)
         if (height > width):
-            pad = (height - width)/2
+            pad = int((height - width)/2)
             #print("Padding = ", pad)
             doublesize_square = cv2.copyMakeBorder(doublesize,0,0,pad,pad,cv2.BORDER_CONSTANT,value=BLACK)
         else:
-            pad = (width - height)/2
+            pad = int((width - height)/2)
             #print("Padding = ", pad)
             doublesize_square = cv2.copyMakeBorder(doublesize,pad,pad,0,0,cv2.BORDER_CONSTANT,value=BLACK)
     doublesize_square_dim = doublesize_square.shape
@@ -149,32 +160,39 @@ def reposition(img, centre):
     constant= cv2.copyMakeBorder(img,y,8-y,x,8-x,cv2.BORDER_CONSTANT,value=BLACK)
     return constant
 
-def getImage(myfile):
+def getImage(myfile, isVerbose):
+
+    d = collections.OrderedDict();
+
     image = cv2.imread(myfile)
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-    cv2.imshow("image", image)
-    cv2.imshow("gray", gray)
-    cv2.waitKey(0)
+
+
+    d["image"] = image
+    d["gray"] = gray
+    show(d, isVerbose)
 
     # Blur image then find edges using Canny
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    cv2.imshow("blurred", blurred)
-    cv2.waitKey(0)
 
 
     kernel = np.ones((3,3), np.uint8)
     edged = cv2.Canny(blurred, 30, 100)
-    cv2.imshow("edged", edged)
-    cv2.waitKey(0)
+
+
     dilate = cv2.dilate(edged, kernel, iterations=1)
     # Find Contours
     r_img, contours, _ = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     align, sorted_contours = getAlignedContours(contours)
 
-    cv2.imshow("image", r_img)
-    cv2.waitKey(0)
 
+    d.clear()
+    d["blurred"] = blurred
+    d["edged"] = edged
+
+
+    show(d, isVerbose)
 
     detected_images = []
     coords = []
@@ -185,24 +203,32 @@ def getImage(myfile):
         if w >= 5 and h >= 25:
             cropped = blurred[y:y+h, x:x+w]
             ret3,final = cv2.threshold(cropped,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-            cv2.imshow("final", final)
+
             final_square = makePaddedSquare(final)
-            cv2.imshow("final_padded", final_square)
+
 
 
             final_resized = resize_to_pixel(100, final_square)
-            cv2.imshow("final_resized", final_resized)
+
             corrected = correctThickness(final_resized)
-            cv2.imshow("corrected", corrected)
+
             final_resized = resize_to_pixel(20, corrected)
-            cv2.imshow("all_final", final_resized)
+
             centre = getCentroid(final_resized)
             print final_resized.shape
             constant = reposition(final_resized, centre)
-            cv2.imshow('repositioned', constant)
+
             print "Shape " + str(constant.shape)
             print "centroid " + str(getCentroid(constant))
-            cv2.waitKey(0)
+            
+
+            d.clear()
+            d["final"] = final
+            d["final_padded"] = final_square
+            d["corrected"] = corrected
+            d["UltimateFinal"] = final_resized
+            d["repositioned"] = constant
+            show(d, isVerbose)
 
             detected_images.append(constant)
             coords.append((x, y, w, h))

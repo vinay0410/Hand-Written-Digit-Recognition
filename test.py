@@ -7,17 +7,18 @@ import argparse
 parser = argparse.ArgumentParser(description='To read some arguments')
 
 parser.add_argument('-i', "--image", help="Path to the test image", required=True)
-
+parser.add_argument('-v', "--verbose", help="This mode will display each step while processing", action='store_true')
 
 args = vars(parser.parse_args())
 
 imagepath = args["image"]
-
+isVerbose = args["verbose"]
 
 
 img = cv2.imread(imagepath)
 
-imgs, coords, align = extract.getImage(imagepath)
+imgs, coords, align = extract.getImage(imagepath, isVerbose)
+
 
 def accuracy(predictions, labels):
   arr = np.argmax(predictions, axis=1)
