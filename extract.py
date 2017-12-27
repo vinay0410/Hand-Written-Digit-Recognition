@@ -151,11 +151,11 @@ def display(number, rect, img):
 
 
 def reposition(img, centre):
-    print centre
+
     img_blank = np.zeros((28, 28), dtype=np.uint8)
-    x = 4 + (10 - centre[0])
-    y = 4 + (10 - centre[1])
-    print(x, y)
+    x = int(round(4 + (10 - centre[0])))
+    y = int(round(4 + (10 - centre[1])))
+
     BLACK = [0, 0, 0]
     constant= cv2.copyMakeBorder(img,y,8-y,x,8-x,cv2.BORDER_CONSTANT,value=BLACK)
     return constant
@@ -220,7 +220,7 @@ def getImage(myfile, isVerbose):
 
             print "Shape " + str(constant.shape)
             print "centroid " + str(getCentroid(constant))
-            
+
 
             d.clear()
             d["final"] = final
